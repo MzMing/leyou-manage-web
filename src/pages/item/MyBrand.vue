@@ -1,10 +1,10 @@
 <template>
   <v-card>
     <v-card-title>
-      <v-btn small color="primary">
+      <v-btn small color="primary" @click="show = true">
         新增品牌
       </v-btn>
-      <v-spacer />
+      <v-spacer/>
       <v-text-field label="输入关键字搜索" v-model="search" append-icon="search" hide-details/>
     </v-card-title>
     <v-divider/>
@@ -32,10 +32,27 @@
         </td>
       </template>
     </v-data-table>
+    <!--弹出的对话框-->
+    <v-dialog max-width="500" v-model="show" persistent scroolable>
+      <v-card>
+        <!--对话框的标题-->
+        <v-toolbar dense dark color="primary">
+          <v-toolbar-title>新增品牌</v-toolbar-title>
+          <v-spacer/>
+          <!--关闭窗口的按钮-->
+          <v-btn icon @click="show = false"><v-icon>close</v-icon></v-btn>
+        </v-toolbar>
+        <!--对话框的内容，表单-->
+        <v-card-text class="px-5" style="height: 500px;">
+          <my-brand-form />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
 <script>
+  import MyBrandForm from './MyBrandForm';
   export default {
     name: "MyBrand",
     data() {
@@ -56,8 +73,8 @@
         pagination: {},
         totalBrands: 0,
         loading: false,
-        search:'',
-
+        search: '',
+        show: false,
       }
     },
     watch: {
@@ -67,7 +84,7 @@
           this.getDataFromServer();
         }
       },
-      search(){
+      search() {
         this.getDataFromServer();
       }
     },
@@ -79,20 +96,23 @@
         this.loading = true;
 
         //ajax请求
-        this.$http.get("/item/brand/page",{
-          params:{
-            page:1,
-            rows:5,
-            sortBy:"id",
-            desc:true,
-            search:this.search,
+        this.$http.get("/item/brand/page", {
+          params: {
+            page: this.pagination.page,
+            rows: this.pagination.rowsPerPage,
+            sortBy: this.pagination.sortBy,
+            desc: this.pagination.descending,
+            key: this.search,
           }
-        }).then(resp =>{
+        }).then(resp => {
           this.brands = resp.data.items;
           this.totalBrands = resp.data.total;
           this.loading = false;
         })
       }
+    },
+    components:{
+      MyBrandForm
     }
   }
 </script>
