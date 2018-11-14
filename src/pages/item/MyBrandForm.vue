@@ -60,8 +60,9 @@
           // 4、将字母都处理为大写
           params.letter = letter.toUpperCase();
           // 5、将数据提交到后台
-          this.$http.post('/item/brand', params)
+          this.$http.post('/item/brand', this.$qs.stringify(params))
             .then(() => {
+              this.$emit("close");
               // 6、弹出提示
               this.$message.success("保存成功！");
             })

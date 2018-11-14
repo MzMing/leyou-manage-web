@@ -1,80 +1,82 @@
 <template>
-  <v-card>
-    <v-card-title>
-      <v-btn small color="primary" @click="show = true">
-        新增品牌
-      </v-btn>
-      <v-spacer/>
-      <v-text-field label="输入关键字搜索" v-model="search" append-icon="search" hide-details/>
-    </v-card-title>
-    <v-divider/>
-    <v-data-table
-      :headers="headers"
-      :items="brands"
-      :pagination.sync="pagination"
-      :total-items="totalBrands"
-      :loading="loading"
-      :search="search"
-      class="elevation-1"
-    >
-      <template slot="items" slot-scope="props">
-        <td class="text-xs-center">{{ props.item.id }}</td>
-        <td class="text-xs-center">{{ props.item.name }}</td>
-        <td class="text-xs-center"><img :src="props.item.image"/></td>
-        <td class="text-xs-center">{{ props.item.letter }}</td>
-        <td class="justify-center layout">
-          <v-btn small icon @click="editBrand(props.item)">
-            <v-icon color="success">edit</v-icon>
-          </v-btn>
-          <v-btn small icon @click="deleteBrand(props.item)">
-            <v-icon color="primary">delete</v-icon>
-          </v-btn>
-        </td>
-      </template>
-    </v-data-table>
-    <!--弹出的对话框-->
-    <v-dialog max-width="500" v-model="show" persistent scroolable>
-      <v-card>
-        <!--对话框的标题-->
-        <v-toolbar dense dark color="primary">
-          <v-toolbar-title>新增品牌</v-toolbar-title>
-          <v-spacer/>
-          <!--关闭窗口的按钮-->
-          <v-btn icon @click="show = false"><v-icon>close</v-icon></v-btn>
-        </v-toolbar>
-        <!--对话框的内容，表单-->
-        <v-card-text class="px-5" style="height: 500px;">
-          <my-brand-form />
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-  </v-card>
+  <div>
+    <v-card>
+      <v-card-title class="layout row">
+        <v-btn color="primary" @click="show=true">
+          新增品牌
+        </v-btn>
+        <v-spacer/>
+        <v-text-field
+          label="请输入搜索条件"
+          append-icon="search"
+          class="flex sm3"
+          hide-details
+          v-model="search"
+        />
+      </v-card-title>
+      <v-divider/>
+      <v-data-table
+        :headers="headers"
+        :items="brands"
+        :pagination.sync="pagination"
+        :total-items="totalBrands"
+        :loading="loading"
+        class="elevation-1"
+      >
+        <template slot="items" slot-scope="props">
+          <td class="text-xs-center">{{ props.item.id }}</td>
+          <td class="text-xs-center">{{ props.item.name}}</td>
+          <td class="text-xs-center"><img v-if="!!props.item.image" :src="props.item.image"/></td>
+          <td class="text-xs-center">{{ props.item.letter }}</td>
+          <td class="justify-center layout px-0">
+            <v-btn small icon color="info" @click="editBrand(props.item)">
+              <i class="el-icon-edit"/>
+            </v-btn>
+            <v-btn small icon color="error" @click="deleteBrand(props.item)">
+              <i class="el-icon-delete"/>
+            </v-btn>
+          </td>
+        </template>
+      </v-data-table>
+      <!--新增-->
+      <v-dialog v-model="show" max-width="500" scrollable persistent>
+        <v-card>
+          <v-toolbar dense color="primary" dark class="title px-2">
+            <span>新增品牌</span>
+            <v-spacer/>
+            <v-btn icon @click="show = false">
+              <v-icon>close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-card-text style="height: 500px" class="px-5">
+            <my-brand-form @close="closeWindow"/>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+    </v-card>
+  </div>
 </template>
 
 <script>
-  import MyBrandForm from './MyBrandForm';
+  import MyBrandForm from "./MyBrandForm";
+
   export default {
-    name: "MyBrand",
+    name: "my-brande",
     data() {
       return {
         headers: [
-          {
-            text: "id", // 表头的显示文本
-            value: "id", // 表头对应的每行数据的key
-            align: 'center', // 位置
-            sortable: true, // 是否可排序
-          },
+          {text: "id", value: "id", align: 'center', sortable: true},
           {text: "名称", value: "name", align: 'center', sortable: false},
           {text: "LOGO", value: "image", align: 'center', sortable: false},
           {text: "首字母", value: "letter", align: 'center', sortable: false},
-          {text: '操作', align: 'center', value: 'id', sortable: false},
+          {text: "操作", align: 'center', sortable: false}
         ],
-        brands: [],
+        brands: {},
         pagination: {},
         totalBrands: 0,
         loading: false,
         search: '',
-        show: false,
+        show: false
       }
     },
     watch: {
@@ -86,18 +88,27 @@
       },
       search() {
         this.getDataFromServer();
-      }
-    },
-    created() {
-      this.getDataFromServer();
+      },
+      created() {
+        this.getDataFromServer();
+      },
     },
     methods: {
+      closeWindow(){
+        //关闭窗口
+        this.show=false;
+        //重新加载数据
+        this.getDataFromServer();
+      },
       getDataFromServer() {
+        //开启进度条
         this.loading = true;
-
-        //ajax请求
+        //发起ajax请求，传参：
+        //page 当前页,rows 每页大小,key 搜索条件,sortBy 排序条件,desc 是否是降序
+        //返回值：总页数，总条数，当前页的数据
         this.$http.get("/item/brand/page", {
           params: {
+            //分页
             page: this.pagination.page,
             rows: this.pagination.rowsPerPage,
             sortBy: this.pagination.sortBy,
@@ -105,13 +116,15 @@
             key: this.search,
           }
         }).then(resp => {
+          //赋值
           this.brands = resp.data.items;
           this.totalBrands = resp.data.total;
+          //关闭进度条
           this.loading = false;
         })
       }
     },
-    components:{
+    components: {
       MyBrandForm
     }
   }
