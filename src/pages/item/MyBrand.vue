@@ -78,7 +78,8 @@
         search: '',
         show: false
       }
-    },
+    }, // data
+
     watch: {
       pagination: {
         deep: true,
@@ -92,7 +93,8 @@
       created() {
         this.getDataFromServer();
       },
-    },
+    }, // watch
+
     methods: {
       closeWindow(){
         //关闭窗口
@@ -100,6 +102,7 @@
         //重新加载数据
         this.getDataFromServer();
       },
+
       getDataFromServer() {
         //开启进度条
         this.loading = true;
@@ -122,8 +125,26 @@
           //关闭进度条
           this.loading = false;
         })
-      }
-    },
+      },
+
+      deleteBrand(item) {
+        this.$message.confirm('此操作将永久删除该品牌, 是否继续?').then(() => {
+          // 发起删除请求
+          this.$http.delete("/item/brand" , {  params:{id:item.id}   })
+            .then(() => {
+              // 删除成功，重新加载数据
+              this.$message.success("删除成功！");
+              this.getDataFromServer();
+            })
+        }).catch(() => {
+          this.$message.info("删除已取消！");
+        });
+
+
+      },
+
+    }, //methods
+
     components: {
       MyBrandForm
     }
