@@ -71,7 +71,7 @@
           {text: "首字母", value: "letter", align: 'center', sortable: false},
           {text: "操作", align: 'center', sortable: false}
         ],
-        brands: {},
+        brands: [],
         pagination: {},
         totalBrands: 0,
         loading: false,
@@ -79,7 +79,10 @@
         show: false
       }
     }, // data
-
+    mounted() { // 渲染后执行
+      // 查询数据
+      this.getDataFromServer();
+    },
     watch: {
       pagination: {
         deep: true,
@@ -87,18 +90,18 @@
           this.getDataFromServer();
         }
       },
-      search() {
-        this.getDataFromServer();
-      },
-      created() {
-        this.getDataFromServer();
+      search: { // 监视搜索字段
+        handler() {
+          this.pagination.page=1;
+          this.getDataFromServer();
+        }
       },
     }, // watch
 
     methods: {
-      closeWindow(){
+      closeWindow() {
         //关闭窗口
-        this.show=false;
+        this.show = false;
         //重新加载数据
         this.getDataFromServer();
       },
@@ -130,7 +133,7 @@
       deleteBrand(item) {
         this.$message.confirm('此操作将永久删除该品牌, 是否继续?').then(() => {
           // 发起删除请求
-          this.$http.delete("/item/brand" , {  params:{id:item.id}   })
+          this.$http.delete("/item/brand", {params: {id: item.id}})
             .then(() => {
               // 删除成功，重新加载数据
               this.$message.success("删除成功！");
